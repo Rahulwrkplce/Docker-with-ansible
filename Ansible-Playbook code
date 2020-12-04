@@ -1,0 +1,44 @@
+- hosts: 192.168.43.69
+  tasks:
+   - yum_repository:
+       name: docker
+       description: link for docker repository
+       baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+       gpgcheck: 0
+
+   - package:
+       name: "docker-ce-18.09.1-3.el7.x86_64"
+       state: present  
+
+   - name: "Start docker service - systemctl start docker" 
+     service:
+       name: "docker"
+       state: started
+
+   - name: Installing docker python library
+     pip:
+       name: docker-py
+
+
+   - name: "Pull httpd image"
+     docker_image: 
+       name: "httpd"
+
+   - name: copying file to /var/www/html
+     copy:
+       content: "Running web page through httpd image using ansible notebook"
+       dest: /var/www/html/fileee.html
+
+   - name: Launching the container with port 999
+     docker_container:
+       name: os1
+       image: httpd
+       state: started
+       detach: yes
+       ports: 
+          - "999:80"
+       volumes: /var/www/html/:/usr/local/apache2/htdocs/
+
+   - firewalld:
+       port: 80/tcp
+       state: enabled
